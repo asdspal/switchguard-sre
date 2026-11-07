@@ -1,0 +1,78 @@
+{
+  "$schema": "https://tr.designtokens.org/format/",
+  "meta": {
+    "product": "SwitchGuard SRE Ops Console",
+    "accessibility_target": "WCAG 2.2 AA (4.5:1 normal text, 3.0:1 UI components)",
+    "computed_contrasts_ against_bg_primary_#0B0F19": {
+      "text_primary_#F9FAFB": "18.12:1 (PASS AAA)",
+      "text_secondary_#9CA3AF": "7.08:1 (PASS AAA)",
+      "brand_primary_#38BDF8": "8.94:1 (PASS AAA)",
+      "semantic_success_#34D399": "9.68:1 (PASS AAA)",
+      "semantic_warning_#FBBF24": "11.66:1 (PASS AAA)",
+      "semantic_error_#F87171": "6.81:1 (PASS AA)",
+      "focus_ring_#60A5FA": "7.21:1 (PASS AAA)"
+    },
+    "computed_contrasts_against_bg_surface_#111827": {
+      "text_primary_#F9FAFB": "16.41:1 (PASS AAA)",
+      "text_secondary_#9CA3AF": "6.41:1 (PASS AA)",
+      "semantic_success_#34D399": "8.77:1 (PASS AAA)",
+      "semantic_error_#F87171": "6.17:1 (PASS AA)"
+    }
+  },
+  "color": {
+    "bg": {
+      "primary": { "value": "#0B0F19", "rationale": "Deep slate background reduces eye strain during 2 AM incident triage" },
+      "surface": { "value": "#111827", "rationale": "Elevated card surface for Airlock and FlashProve panels" },
+      "elevated": { "value": "#1F2937", "rationale": "Code block and modal surface" }
+    },
+    "text": {
+      "primary": { "value": "#F9FAFB", "rationale": "18.12:1 contrast on primary bg" },
+      "secondary": { "value": "#9CA3AF", "rationale": "7.08:1 contrast for timestamps and metadata" },
+      "disabled": { "value": "#6B7280", "rationale": "3.65:1 muted state for inactive buttons" }
+    },
+    "brand": {
+      "primary": { "value": "#38BDF8", "rationale": "SwitchGuard sky-cyan accent (8.94:1 contrast)" },
+      "accent": { "value": "#818CF8", "rationale": "Cryptographic FlashProve badge accent" }
+    },
+    "semantic": {
+      "success": { "value": "#34D399", "rationale": "Healthy v2.13.2 & FlashProve VERIFIED state (9.68:1)" },
+      "warning": { "value": "#FBBF24", "rationale": "PENDING_APPROVAL human gate banner (11.66:1)" },
+      "error": { "value": "#F87171", "rationale": "HTTP 500 v2.14.0 outage & tampered proof alert (6.81:1)" },
+      "info": { "value": "#38BDF8", "rationale": "Room link routing indicator" }
+    },
+    "border": {
+      "default": { "value": "#374151", "rationale": "Subtle 1px structural divider" },
+      "focus": { "value": "#60A5FA", "rationale": "2px keyboard focus ring (7.21:1)" }
+    }
+  },
+  "typography": {
+    "fontFamily": {
+      "sans": { "value": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", "license": "OFL-1.1 / System" },
+      "mono": { "value": "'JetBrains Mono', 'Fira Code', Consolas, monospace", "license": "OFL-1.1 / System" }
+    },
+    "scale": {
+      "h1": { "size": "1.75rem", "lineHeight": "2.25rem", "weight": "700" },
+      "h2": { "size": "1.25rem", "lineHeight": "1.75rem", "weight": "600" },
+      "body": { "size": "0.9375rem", "lineHeight": "1.5rem", "weight": "400" },
+      "code": { "size": "0.8125rem", "lineHeight": "1.25rem", "weight": "500" },
+      "badge": { "size": "0.75rem", "lineHeight": "1.0rem", "weight": "600" }
+    }
+  },
+  "spacing": {
+    "xs": "0.25rem",
+    "sm": "0.5rem",
+    "md": "1.0rem",
+    "lg": "1.5rem",
+    "xl": "2.0rem"
+  },
+  "radii": {
+    "sm": "4px",
+    "md": "8px",
+    "pill": "9999px"
+  },
+  "breakpoints": {
+    "mobile": "640px",
+    "tablet": "1024px",
+    "desktop": "1280px"
+  }
+}

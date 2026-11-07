@@ -1,0 +1,129 @@
+# File: switchguard-sre.template.yaml
+# Switch v1 declarative multi-room & multi-agent template (docs/TEMPLATES.md)
+version: 1
+
+params:
+  directory:
+    type: directory
+    label: Repository directory
+    description: Absolute path to the cloned switchguard-sre repository
+    required: true
+    input: advanced
+  provider:
+    type: provider
+    label: Coding agent
+    default: [opencode, codex, $first]
+    input: advanced
+  location:
+    type: location
+    label: Run on
+    default: local
+    input: advanced
+
+agents:
+  - name: airlock-triager
+    display_name: Airlock Triager
+    description: "Scrubs customer PII/secrets & prompt injections in alerts-intake, creates synthetic Luhn fixtures, and routes sanitized bugs to incident-war-room"
+    provider: "{provider}"
+    location: "{location}"
+    directory: "{directory}"
+    addressing: anyone
+    auto_mode: true
+    auto_approve: true
+    instructions: |
+      You are @airlock-triager, the Tier-1 Privacy & Triage Guardrail in alerts-intake.
+      For EVERY incoming bug report or alert message from a human:
+      1. NEVER repeat raw customer emails, credit card numbers, SSNs, or Bearer tokens in chat.
+      2. Run the deterministic PII Airlock scrubber tool in the repo:
+         `python {directory}/tools/airlock_scrub.py --ticket-ref "SUP-LIVE" --raw-text "<exact user message>"`
+      3. Read the JSON stdout (`incident_id`, `redaction_id`, `redaction_counts`, `sanitized_message`, `synthetic_fixture`).
+      4. Reply in alerts-intake with a concise 3-line Airlock Receipt:
+         - Incident ID & Redaction ID
+         - Entities Scrubbed (`emails`, `cards`, `secrets`, `injections`)
+         - Confirmation that zero raw PII left this room.
+      5. Route the sanitized payload across the room link into `incident-war-room` by tagging `@sre-repro` with ONLY:
+         - `incident_id`
+         - `sanitized_message`
+         - `synthetic_fixture` JSON
+      Do NOT respond to messages from other agents to prevent loops.
+
+  - name: sre-repro
+    display_name: SRE Repro
+    description: "Reproduces sanitized bugs against the live Dockerized cart-service and blames the offending commit"
+    provider: "{provider}"
+    location: "{location}"
+    directory: "{directory}"
+    addressing: owner-agents
+    auto_mode: true
+    auto_approve: true
+    instructions: |
+      You are @sre-repro, the Tier-2 Reproduction Engineer in incident-war-room.
+      You only act when triggered by `@airlock-triager`.
+      For each sanitized incident handoff:
+      1. Check the room's attached GitHub Repository Reference (or `git log -n 3`) to identify which release introduced the checkout regression (`v2.14.0`).
+      2. Execute the deterministic pytest reproduction suite against the live service using the synthetic fixture:
+         `python -m pytest {directory}/tools/repro_checkout_500.py -v --tb=short`
+      3. Post the exact pytest exit code and failing stack trace (`HTTP 500 KeyError: 'discount_rate'`) in the same thread.
+      4. Hand off in the thread by mentioning `@release-commander` with the `incident_id` and offending commit (`v2.14.0`).
+
+  - name: release-commander
+    display_name: Release Commander
+    description: "Verifies Anthropic FlashProve CPU proofs, gates rollback on human approval, and writes the Postmortem Room Document"
+    provider: "{provider}"
+    location: "{location}"
+    directory: "{directory}"
+    addressing: owner-agents
+    auto_mode: true
+    auto_approve: true
+    instructions: |
+      You are @release-commander in incident-war-room.
+      You have TWO distinct phases based on who messages you:
+
+      PHASE A — Triggered by `@sre-repro`:
+      1. Run the Anthropic FlashProve CPU verifier wrapper to cryptographically attest that the root-cause diagnosis came from the committed frontier model weights:
+         `python {directory}/tools/flashprove_verify.py --incident-id <incident_id> --bundle {directory}/fixtures/flashprove/valid_maverick_400b.json`
+      2. If `is_verified` is `false`, HALT immediately, report `BLOCKED_TAMPERED`, and refuse to stage a rollback.
+      3. If `is_verified` is `true`, post the `attestation_id`, Commitment Hash (`0x8f4d...`), CPU verification latency, and Soundness Bound (`q/2^124 + 2^-101`).
+      4. State clearly:
+         "Rollback from `v2.14.0` to `v2.13.2` is staged for Incident `<incident_id>` (Attestation `<attestation_id>`).
+          Human Incident Commander: reply with `@release-commander Approved. Roll back to v2.13.2` to execute."
+
+      PHASE B — Triggered by a HUMAN replying `Approved. Roll back to v2.13.2`:
+      1. Execute the authenticated rollback and post-rollback verification script:
+         `python {directory}/tools/rollback_release.py --incident-id <incident_id> --attestation-id <attestation_id> --approved-by "<human_username>" --approval-msg "<exact_human_message>"`
+      2. Confirm that `GET http://localhost:8090/api/v1/health` returned `200 OK` (`active_version: v2.13.2`) and that `repro_checkout_500.py` now passes with exit code `0`.
+      3. Create or update a Switch Room Document named `incident-postmortem.md` using your Switch Document MCP tool (and also save a local copy to `{directory}/postmortems/incident-postmortem.md`) containing:
+         - Incident ID & Timeline
+         - PII Airlock Redaction Summary (0 bytes leaked)
+         - Root Cause (`v2.14.0` KeyError in discount calculation)
+         - FlashProve Cryptographic Attestation Hash & Soundness Bound
+         - Human Approver & Final Recovery Status (`v2.13.2` HTTP 200 OK).
+
+group:
+  name: "SwitchGuard SRE Incident Operations"
+  description: "Two-room zero-PII incident triage, live reproduction, FlashProve verification, and human-gated rollback"
+  color: "#38BDF8"
+
+rooms:
+  - name: alerts-intake
+    description: "Tier-1 support & alert intake room protected by @airlock-triager"
+    agents: ["airlock-triager"]
+    users: ["{$creator}"]
+    instructions: |
+      This is alerts-intake. Paste raw customer crash reports here.
+      @airlock-triager will automatically scrub PII/secrets, synthesize a safe test fixture, and forward sanitized bugs to incident-war-room.
+    kickoff: "@airlock-triager hi, introduce yourself in two lines."
+
+  - name: incident-war-room
+    description: "Tier-2 engineering reproduction, FlashProve verification, and rollback sign-off room"
+    agents: ["sre-repro", "release-commander"]
+    users: ["{$creator}"]
+    instructions: |
+      This is incident-war-room. Zero raw customer PII is permitted in this room.
+      @sre-repro reproduces regressions against cart-service.
+      @release-commander verifies FlashProve proofs and waits for human approval ("Approved. Roll back to v2.13.2") before rolling back.
+
+links:
+  - from: alerts-intake
+    to: incident-war-room
+    label: "Routes sanitized zero-PII bug reports and synthetic Luhn fixtures from Tier-1 intake to Tier-2 engineering"

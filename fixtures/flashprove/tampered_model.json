@@ -1,0 +1,12 @@
+{
+  "bundle_version": "flashprove-cp-snark-0.16.0",
+  "model_name": "Llama-4-Maverick-400B-MoE-Int4",
+  "weight_commitment_hash": "0000000000000000deadbeefcafebabe0123456789abcdef0123456789abcdef",
+  "diagnostic_claim": "ROOT_CAUSE: commit v2.14.0 introduced unguarded dict lookup PROMO_RATES[discount_code]['discount_rate'] in POST /api/v1/checkout; SAFE_REMEDIATION: rollback active_version to v2.13.2",
+  "proof_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "token_count": 512,
+  "verifier_engine": "cp_verify_v0.16.0",
+  "simulated_verify_duration_ms": 1410,
+  "soundness_bound": "FAILED_COMMITMENT_MISMATCH",
+  "lean4_theorem_ref": "FlashProve.Verifier.commit_and_prove_soundness"
+}

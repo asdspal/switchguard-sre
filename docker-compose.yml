@@ -1,0 +1,17 @@
+services:
+  switchguard-sre:
+    build: .
+    container_name: switchguard-sre
+    ports:
+      - "8090:8090"
+    env_file:
+      - .env.example
+    volumes:
+      - ./data:/app/data
+      - ./postmortems:/app/postmortems
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8090/api/v1/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
